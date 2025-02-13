@@ -1,13 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35707.178 d17.12
+VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyCellarApi", "MyCellarApi\MyCellarApi.csproj", "{C01FC640-D7FE-4726-A187-96015167C87D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyCellarApiCore", "MyCellarApiCore\MyCellarApiCore.csproj", "{1E4FCC96-D203-46A0-A2DE-86D7C479ACD8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyCellarUnitTest", "MyCellarUnitTest\MyCellarUnitTest.csproj", "{654C4365-031E-4141-83E2-D0F19B13179E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyCellarUnitTest", "MyCellarUnitTest\MyCellarUnitTest.csproj", "{6E95F141-7D0C-480E-A103-C605AE88CF58}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,10 @@ Global
 		{1E4FCC96-D203-46A0-A2DE-86D7C479ACD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E4FCC96-D203-46A0-A2DE-86D7C479ACD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1E4FCC96-D203-46A0-A2DE-86D7C479ACD8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{654C4365-031E-4141-83E2-D0F19B13179E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{654C4365-031E-4141-83E2-D0F19B13179E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{654C4365-031E-4141-83E2-D0F19B13179E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{654C4365-031E-4141-83E2-D0F19B13179E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E95F141-7D0C-480E-A103-C605AE88CF58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E95F141-7D0C-480E-A103-C605AE88CF58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E95F141-7D0C-480E-A103-C605AE88CF58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E95F141-7D0C-480E-A103-C605AE88CF58}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
