@@ -20,8 +20,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<MyCellarDbContext>(options =>
-    options.UseLazyLoadingProxies()
-    .UseSqlServer(builder.Configuration.GetConnectionString("MyCellar_db"))
+    options.UseSqlServer(builder.Configuration.GetConnectionString("MyCellar_db"))
     );
 
 var app = builder.Build();

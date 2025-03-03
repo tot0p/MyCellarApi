@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MyCellarApi.Data;
 
@@ -11,9 +12,11 @@ using MyCellarApi.Data;
 namespace MyCellarApi.Migrations
 {
     [DbContext(typeof(MyCellarDbContext))]
-    partial class MyCellarDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250303144414_FixFKStock")]
+    partial class FixFKStock
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
