@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using MyCellarApiCore.Data;
 using MyCellarApiCore.Models;
 using System.Collections.Generic;
+using System.Net;
 
 namespace MyCellarApiCore.Controllers
 {
@@ -77,6 +78,12 @@ namespace MyCellarApiCore.Controllers
 
                 // add link headers to specify the first, prev, next, and last pages
                 Response.Headers["Link"] = string.Join(", ", links);
+
+                // add the partial content status code to indicate that the response only contains a subset of the items but only if it is not the last page
+                if (end < totalItems - 1)
+                {
+                    Response.StatusCode = (int)HttpStatusCode.PartialContent;
+                }
 
                 return items;
             }
