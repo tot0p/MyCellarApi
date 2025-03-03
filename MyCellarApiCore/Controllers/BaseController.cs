@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using MyCellarApiCore.Data;
 using MyCellarApiCore.Models;
+using System.Collections.Generic;
 
 namespace MyCellarApiCore.Controllers
 {
@@ -16,9 +17,73 @@ namespace MyCellarApiCore.Controllers
         }
 
         [HttpGet]
-        public virtual async Task<ActionResult<IEnumerable<TModel>>> GetAll()
+        public virtual async Task<ActionResult<IEnumerable<TModel>>> GetAll([FromQuery] string range)
         {
-            return await _context.Set<TModel>().Where((TModel m) => !m.Deleted).ToListAsync();
+            if (!string.IsNullOrWhiteSpace(range))
+            {
+                var parts = range.Split('-');
+                if (parts.Length != 2)
+                {
+                    return BadRequest();
+
+                }
+                int start;
+                int end;
+                try
+                {
+                    start= int.Parse(parts[0]);
+                    end= int.Parse(parts[1]);
+                }
+                catch (Exception)
+                {
+                    return BadRequest();
+                }
+                int count = end - start + 1;
+                if (count < 1)
+                {
+                    return BadRequest();
+                }
+
+                var totalItems = await _context.Set<TModel>().CountAsync(m => !m.Deleted);
+                var items = await _context.Set<TModel>().Where(m => !m.Deleted).Skip(start).Take(count).ToListAsync();
+
+                // add range headers to specify the range of items returned
+                Response.Headers["Content-Range"] = $"{start}-{end}/{totalItems}";
+                Response.Headers["Accept-Ranges"] = $"items {count}";
+
+                var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
+                var links = new List<string>();
+
+                links.Add($"<{baseUrl}?range=0-{count - 1}>; rel=\"first\"");
+                if (start > 0)
+                {
+                    var prevStart = Math.Max(0, start - count);
+                    var prevEnd = start - 1;
+                    links.Add($"<{baseUrl}?range={prevStart}-{prevEnd}>; rel=\"prev\"");
+                }
+                if (end < totalItems - 1)
+                {
+                    var nextStart = end + 1;
+                    var nextEnd = Math.Min(totalItems - 1, end + count);
+                    links.Add($"<{baseUrl}?range={nextStart}-{nextEnd}>; rel=\"next\"");
+                }
+                var lastStart = totalItems - (totalItems % count);
+                var lastEnd = totalItems - 1;
+                if (lastStart > lastEnd)
+                {
+                    lastStart = lastEnd;
+                }
+                links.Add($"<{baseUrl}?range={lastStart}-{lastEnd}>; rel=\"last\"");
+
+                // add link headers to specify the first, prev, next, and last pages
+                Response.Headers["Link"] = string.Join(", ", links);
+
+                return items;
+            }
+            else
+            {
+                return await _context.Set<TModel>().Where(m => !m.Deleted).ToListAsync();
+            }
         }
 
         [HttpGet("{id}")]
