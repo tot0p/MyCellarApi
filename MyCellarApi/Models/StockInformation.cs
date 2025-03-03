@@ -7,15 +7,14 @@ namespace MyCellarApi.Models
     public class StockInformation : BaseModel
     {
         [Required]
-        [ForeignKey(nameof(WineBottle))]
-        public int WineId { get; set; }
-        public virtual WineBottle WineBottle { get; set; }
+        [ForeignKey("WineBottle")]
+        public int WineBottleId { get; set; }
 
         [Required]
-        [ForeignKey(nameof(Cellar))]
-        public int CellarId { get; set; }        
-        public virtual Cellar Cellar { get; set; }
+        [ForeignKey("Cellar")]
+        public int CellarId { get; set; }
+
         [Required]
         public int Quantity { get; set; } = 0;
-}
+    }
 }
