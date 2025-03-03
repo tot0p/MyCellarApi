@@ -17,7 +17,7 @@ namespace MyCellarApiCore.Controllers
         }
 
         [HttpGet]
-        public virtual async Task<ActionResult<IEnumerable<TModel>>> GetAll([FromQuery] string range = "0-25")
+        public virtual async Task<ActionResult<IEnumerable<TModel>>> GetAll([FromQuery] string range)
         {
             if (!string.IsNullOrWhiteSpace(range))
             {
@@ -47,6 +47,7 @@ namespace MyCellarApiCore.Controllers
                 var totalItems = await _context.Set<TModel>().CountAsync(m => !m.Deleted);
                 var items = await _context.Set<TModel>().Where(m => !m.Deleted).Skip(start).Take(count).ToListAsync();
 
+                // add range headers to specify the range of items returned
                 Response.Headers["Content-Range"] = $"{start}-{end}/{totalItems}";
                 Response.Headers["Accept-Ranges"] = $"items {count}";
 
@@ -74,6 +75,7 @@ namespace MyCellarApiCore.Controllers
                 }
                 links.Add($"<{baseUrl}?range={lastStart}-{lastEnd}>; rel=\"last\"");
 
+                // add link headers to specify the first, prev, next, and last pages
                 Response.Headers["Link"] = string.Join(", ", links);
 
                 return items;
