@@ -13,7 +13,7 @@ namespace MyCellarApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class StockInformationsController : BaseController<MyCellarDbContext, Cellar>
+    public class StockInformationsController : BaseController<MyCellarDbContext, StockInformation>
     {
         public StockInformationsController(MyCellarDbContext context) : base(context)
         {
