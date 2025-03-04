@@ -28,7 +28,7 @@ namespace MyCellarApiCore.Extensions
         {
             var param = Expression.Parameter(typeof(TModel), "m");
             var property = Expression.Property(param, field);
-            var lambda = Expression.Lambda<Func<TModel, object>>(Expression.Convert(property, typeof(object)), param);
+            var lambda = Expression.Lambda<Func<TModel, object>>(property, param);
             return lambda;
         }
     }
