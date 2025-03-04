@@ -9,6 +9,8 @@ namespace MyCellarApiCore.Extensions
 {
     public static class IQueryableExtension
     {
+
+        #region Filter
         public static IQueryable<T> ApplyFilter<T>(this IQueryable<T> query, Dictionary<string, string> filter)
         {
             foreach (var key in filter.Keys)
@@ -92,5 +94,40 @@ namespace MyCellarApiCore.Extensions
             var body = Expression.GreaterThanOrEqual(member, constant);
             return Expression.Lambda<Func<T, bool>>(body, parameter);
         }
+
+        #endregion
+
+
+        #region Search
+
+        public static IQueryable<T> ApplySearch<T>(this IQueryable<T> query, Dictionary<string, string> search)
+        {
+            if (search != null)
+            {
+                var parameter = Expression.Parameter(typeof(T), "x");
+                Expression<Func<T, bool>> predicate = null;
+                foreach (var key in search.Keys)
+                {
+                    var value = search[key];
+                    var member = Expression.Property(parameter, key);
+                    var constant = Expression.Constant(Convert.ChangeType(value, member.Type));
+                    var body = Expression.Equal(member, constant);
+                    if (predicate == null)
+                    {
+                        predicate = Expression.Lambda<Func<T, bool>>(body, parameter);
+                    }
+                    else
+                    {
+                        predicate = Expression.Lambda<Func<T, bool>>(Expression.AndAlso(predicate.Body, body), parameter);
+                    }
+                }
+                query = query.Where(predicate);
+            }
+            return query;
+        }
+
+        #endregion
+
+
     }
 }
