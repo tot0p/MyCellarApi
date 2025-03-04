@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using MyCellarApiCore.Data;
 using MyCellarApiCore.Models;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Net;
+using MyCellarApiCore.Extensions;
 
 namespace MyCellarApiCore.Controllers
 {
@@ -18,22 +20,34 @@ namespace MyCellarApiCore.Controllers
         }
 
         [HttpGet]
-        public virtual async Task<ActionResult<IEnumerable<TModel>>> GetAll([FromQuery] string range="")
+        public virtual async Task<ActionResult<IEnumerable<TModel>>> GetAll([FromQuery] string range = "")
         {
+            IQueryable<TModel> query = _context.Set<TModel>().Where(m => !m.Deleted);
+
+            // Apply filters based on query string (exclude range)
+            var filter = Request.Query.GetQueryParams<TModel>();
+            try
+            {
+                query = query.ApplyFilter(filter);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = $"Error applying filter: {ex.Message}" });
+            }
+
             if (!string.IsNullOrEmpty(range))
             {
                 var parts = range.Split('-');
                 if (parts.Length != 2)
                 {
                     return BadRequest();
-
                 }
                 int start;
                 int end;
                 try
                 {
-                    start= int.Parse(parts[0]);
-                    end= int.Parse(parts[1]);
+                    start = int.Parse(parts[0]);
+                    end = int.Parse(parts[1]);
                 }
                 catch (Exception)
                 {
@@ -45,17 +59,17 @@ namespace MyCellarApiCore.Controllers
                     return BadRequest();
                 }
 
-                var totalItems = await _context.Set<TModel>().CountAsync(m => !m.Deleted);
-                var items = await _context.Set<TModel>().Where(m => !m.Deleted).Skip(start).Take(count).ToListAsync();
+                var totalItems = await query.CountAsync();
+                var items = await query.Skip(start).Take(count).ToListAsync();
 
-                // add range headers to specify the range of items returned
                 Response.Headers["Content-Range"] = $"{start}-{end}/{totalItems}";
                 Response.Headers["Accept-Ranges"] = $"items {count}";
 
                 var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
-                var links = new List<string>();
-
-                links.Add($"<{baseUrl}?range=0-{count - 1}>; rel=\"first\"");
+                var links = new List<string>
+            {
+                $"<{baseUrl}?range=0-{count - 1}>; rel=\"first\""
+            };
                 if (start > 0)
                 {
                     var prevStart = Math.Max(0, start - count);
@@ -76,10 +90,8 @@ namespace MyCellarApiCore.Controllers
                 }
                 links.Add($"<{baseUrl}?range={lastStart}-{lastEnd}>; rel=\"last\"");
 
-                // add link headers to specify the first, prev, next, and last pages
                 Response.Headers["Link"] = string.Join(", ", links);
 
-                // add the partial content status code to indicate that the response only contains a subset of the items but only if it is not the last page
                 if (end < totalItems - 1)
                 {
                     Response.StatusCode = (int)HttpStatusCode.PartialContent;
@@ -89,14 +101,14 @@ namespace MyCellarApiCore.Controllers
             }
             else
             {
-                return await _context.Set<TModel>().Where(m => !m.Deleted).ToListAsync();
+                return await query.ToListAsync();
             }
         }
+
 
         [HttpGet("{id}")]
         public virtual async Task<ActionResult<TModel>> GetModel(int id)
         {
-
             var model = await _context.Set<TModel>().FindAsync(id);
 
             if (model == null)
