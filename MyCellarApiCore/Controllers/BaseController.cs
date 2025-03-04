@@ -18,9 +18,9 @@ namespace MyCellarApiCore.Controllers
         }
 
         [HttpGet]
-        public virtual async Task<ActionResult<IEnumerable<TModel>>> GetAll([FromQuery] string range)
+        public virtual async Task<ActionResult<IEnumerable<TModel>>> GetAll([FromQuery] string range="")
         {
-            if (!string.IsNullOrWhiteSpace(range))
+            if (!string.IsNullOrEmpty(range))
             {
                 var parts = range.Split('-');
                 if (parts.Length != 2)
