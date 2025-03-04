@@ -96,6 +96,7 @@ namespace MyCellarApiCore.Controllers
         [HttpGet("{id}")]
         public virtual async Task<ActionResult<TModel>> GetModel(int id)
         {
+
             var model = await _context.Set<TModel>().FindAsync(id);
 
             if (model == null)
