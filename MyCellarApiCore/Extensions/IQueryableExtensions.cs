@@ -10,6 +10,20 @@ namespace MyCellarApiCore.Extensions
         // Order by a field in ascending order
         public static IOrderedQueryable<TModel> SortAsc<TModel>(this IQueryable<TModel> query, string field)
         {
+            // Multiple fields
+            if (field.Contains(','))
+            {
+                var fields = field.Split(',');
+                var queryOrdered = query.OrderBy(GenerateLambda<TModel>(fields[0]));
+                var elems = fields.Skip(1);
+                foreach (var elem in elems)
+                {
+                    queryOrdered = queryOrdered.ThenBy(GenerateLambda<TModel>(elem));
+                }
+                return queryOrdered;
+            }
+
+            // One field
             var lambda = GenerateLambda<TModel>(field);
 
             return query.OrderBy(lambda);
@@ -18,6 +32,20 @@ namespace MyCellarApiCore.Extensions
         // Order by a field in descending order
         public static IOrderedQueryable<TModel> SortDesc<TModel>(this IQueryable<TModel> query, string field)
         {
+            // Multiple fields
+            if (field.Contains(','))
+            {
+                var fields = field.Split(',');
+                var queryOrdered = query.OrderByDescending(GenerateLambda<TModel>(fields[0]));
+                var elems = fields.Skip(1);
+                foreach (var elem in elems)
+                {
+                    queryOrdered.ThenByDescending(GenerateLambda<TModel>(elem));
+                }
+                return queryOrdered;
+            }
+
+            // One field
             var lambda = GenerateLambda<TModel>(field);
 
             return query.OrderByDescending(lambda);
