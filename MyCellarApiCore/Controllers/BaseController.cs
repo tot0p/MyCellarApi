@@ -193,11 +193,8 @@ namespace MyCellarApiCore.Controllers
         [HttpGet("search")]
         public virtual async Task<ActionResult<IEnumerable<TModel>>> Search()
         {
-
             Dictionary<string, string> queryParams = Request.Query.GetQueryParams<TModel>();
-
             var tr = _context.Set<TModel>().Where(m => !m.Deleted).ApplySearch(queryParams);
-            
             return await tr.ToListAsync();
         }
     }

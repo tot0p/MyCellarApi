@@ -110,7 +110,24 @@ namespace MyCellarApiCore.Extensions
                 {
                     var value = search[key];
                     var member = Expression.Property(parameter, key);
+
+                    // check if the value of the search look like *value*
+                    if (value.StartsWith("*") && value.EndsWith("*")) {
+                        value = value.Trim('*');
+                        var constant2 = Expression.Constant(Convert.ChangeType(value, member.Type));
+                        var body2 = Expression.Call(member, "Contains", null, constant2);
+                        if (predicate == null)
+                        {
+                            predicate = Expression.Lambda<Func<T, bool>>(body2, parameter);
+                        }
+                        else
+                        {
+                            predicate = Expression.Lambda<Func<T, bool>>(Expression.AndAlso(predicate.Body, body2), parameter);
+                        }
+                        continue;
+                    }
                     var constant = Expression.Constant(Convert.ChangeType(value, member.Type));
+
                     var body = Expression.Equal(member, constant);
                     if (predicate == null)
                     {
