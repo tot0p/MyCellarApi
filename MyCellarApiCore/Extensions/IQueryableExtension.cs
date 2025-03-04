@@ -2,21 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace MyCellarApiCore.Utils
+namespace MyCellarApiCore.Extensions
 {
-    public static class GenericFilter
+    public static class IQueryableExtension
     {
-        public static IQueryable<T> ApplyFilter<T>(this IQueryable<T> query, string filter)
+        public static IQueryable<T> ApplyFilter<T>(this IQueryable<T> query, Dictionary<string, string> filter)
         {
-            var filters = filter.Split('&');
-            foreach (var f in filters)
+            foreach (var key in filter.Keys)
             {
-                var parts = f.Split('=');
-                if (parts.Length != 2) continue;
-
-                var key = parts[0];
-                var value = parts[1];
+                var value = filter[key];
 
                 if (value.StartsWith("[") && value.EndsWith("]"))
                 {
@@ -44,7 +41,6 @@ namespace MyCellarApiCore.Utils
                 }
                 else
                 {
-                    Console.WriteLine(BuildEqualExpression<T>(key, value));
                     query = query.Where(BuildEqualExpression<T>(key, value));
                 }
             }

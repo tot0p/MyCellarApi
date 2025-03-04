@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyCellarApiCore.Data;
-using MyCellarApiCore.Utils;
 using MyCellarApiCore.Models;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Net;
+using MyCellarApiCore.Extensions;
 
 namespace MyCellarApiCore.Controllers
 {
@@ -25,9 +25,7 @@ namespace MyCellarApiCore.Controllers
             IQueryable<TModel> query = _context.Set<TModel>().Where(m => !m.Deleted);
 
             // Apply filters based on query string (exclude range)
-            var queryStrings = Request.QueryString.Value ?? string.Empty;
-            var filter = queryStrings.Replace($"range={range}", "").TrimStart('?');
-
+            var filter = Request.Query.GetQueryParams<TModel>();
             try
             {
                 query = query.ApplyFilter(filter);
@@ -111,7 +109,6 @@ namespace MyCellarApiCore.Controllers
         [HttpGet("{id}")]
         public virtual async Task<ActionResult<TModel>> GetModel(int id)
         {
-
             var model = await _context.Set<TModel>().FindAsync(id);
 
             if (model == null)

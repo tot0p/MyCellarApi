@@ -3,7 +3,7 @@ using MyCellarApiCore.Models;
 
 namespace MyCellarApiCore.Extensions
 {
-    public static class IQueryCollection
+    public static class IQueryCollectionExtension
     {
 
         public static List<string> GetAttributs<TModel>() where TModel : BaseModel => typeof(TModel).GetProperties().Select(p => p.Name.ToLower()).ToList();
