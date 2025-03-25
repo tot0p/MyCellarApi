@@ -40,15 +40,13 @@ namespace MyCellarApiCore.Controllers
             if (!string.IsNullOrEmpty(asc) && !string.IsNullOrEmpty(desc))
             {
                 query = query.SortBoth(asc, desc);
-                asc = "";
-                desc = "";
             }
-            if (!string.IsNullOrEmpty(asc))
+            else if (!string.IsNullOrEmpty(asc))
             {
                 query = query.SortAsc(asc);
             }
             // sort the items by the specified field in descending order
-            if (!string.IsNullOrEmpty(desc))
+            else if (!string.IsNullOrEmpty(desc))
             {
                 query = query.SortDesc(desc);
             }
