@@ -112,16 +112,17 @@ namespace MyCellarApiCore.Controllers
 
                 
             }
-            
-            var items = await query.ToListAsync();
+
+            List<TModel> items = await query.ToListAsync();
             if (!string.IsNullOrEmpty(fields))
             {
-                var itemsClone = items.GetRange(0, items.Count);
-                items.Clear();
-                foreach (var item in itemsClone)
+                List<dynamic> newItems = new List<dynamic>();
+                foreach (var item in items)
                 {
-                    items.Add(item.SelectFields(fields));
+                    newItems.Add(item.SelectFields(fields));
                 }
+
+                return StatusCode((int)HttpStatusCode.PartialContent, newItems);
             }
 
             if (isPartial)
