@@ -40,8 +40,8 @@ namespace MyCellarApiCore.Controllers
             if (!string.IsNullOrEmpty(asc) && !string.IsNullOrEmpty(desc))
             {
                 query = query.SortBoth(asc, desc);
-                asc = null;
-                desc = null;
+                asc = "";
+                desc = "";
             }
             if (!string.IsNullOrEmpty(asc))
             {
