@@ -60,7 +60,7 @@ namespace MyCellarApiCore.Controllers
                 }
 
                 var totalItems = await query.CountAsync();
-                var items = await query.Skip(start).Take(count).ToListAsync();
+                var items = await query.GetRange(start,totalItems).ToListAsync();
 
                 Response.Headers["Content-Range"] = $"{start}-{end}/{totalItems}";
                 Response.Headers["Accept-Ranges"] = $"items {count}";

@@ -112,7 +112,8 @@ namespace MyCellarApiCore.Extensions
                     var member = Expression.Property(parameter, key);
 
                     // check if the value of the search look like *value*
-                    if (value.StartsWith("*") && value.EndsWith("*")) {
+                    if (value.StartsWith("*") && value.EndsWith("*"))
+                    {
                         value = value.Trim('*');
                         var constant2 = Expression.Constant(Convert.ChangeType(value, member.Type));
                         var body2 = Expression.Call(member, "Contains", null, constant2);
@@ -198,6 +199,15 @@ namespace MyCellarApiCore.Extensions
             var property = Expression.Property(param, field);
             var lambda = Expression.Lambda<Func<TModel, object>>(property, param);
             return lambda;
+        }
+
+        #endregion
+
+        #region Range
+
+        public static IQueryable<TModel> GetRange<TModel>(this IQueryable<TModel> query, int start, int count)
+        {
+            return query.Skip(start).Take(count);
         }
 
         #endregion
