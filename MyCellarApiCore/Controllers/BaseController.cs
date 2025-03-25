@@ -35,6 +35,18 @@ namespace MyCellarApiCore.Controllers
                 return BadRequest(new { message = $"Error applying filter: {ex.Message}" });
             }
 
+
+            // sort the items by the specified field in ascending order
+            if (!string.IsNullOrEmpty(asc))
+            {
+                query = query.SortAsc(asc);
+            }
+            // sort the items by the specified field in descending order
+            if (!string.IsNullOrEmpty(desc))
+            {
+                query = query.SortDesc(desc);
+            }
+
             if (!string.IsNullOrEmpty(range))
             {
                 var parts = range.Split('-');
@@ -99,20 +111,7 @@ namespace MyCellarApiCore.Controllers
 
                 return items;
             }
-            // sort the items by the specified field in ascending order
-            if (!string.IsNullOrEmpty(asc))
-            {
-                return await _context.Set<TModel>().Where(m => !m.Deleted).SortAsc(asc).ToListAsync();
-            }
-            // sort the items by the specified field in descending order
-            if (!string.IsNullOrEmpty(desc))
-            {
-                return await _context.Set<TModel>().Where(m => !m.Deleted).SortDesc(desc).ToListAsync();
-            }
-            else
-            {
-                return await query.ToListAsync();
-            }
+            return await query.ToListAsync();
         }
 
 
