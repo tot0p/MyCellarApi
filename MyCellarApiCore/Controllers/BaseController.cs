@@ -117,9 +117,11 @@ namespace MyCellarApiCore.Controllers
 
 
         [HttpGet("{id}")]
-        public virtual async Task<ActionResult<TModel>> GetModel(int id)
+        public virtual async Task<ActionResult<dynamic>> GetModel(int id, [FromQuery] string fields = "")
         {
             var model = await _context.Set<TModel>().FindAsync(id);
+
+
 
             if (model == null)
             {
@@ -128,6 +130,11 @@ namespace MyCellarApiCore.Controllers
             else if (model.Deleted)
             {
                 return NotFound();
+            }
+
+            if (!string.IsNullOrEmpty(fields))
+            {
+                return StatusCode((int)HttpStatusCode.PartialContent ,  model.SelectFields(fields));
             }
             return model;
         }
