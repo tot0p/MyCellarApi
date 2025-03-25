@@ -18,9 +18,11 @@ namespace MyCellarApiCore.Controllers
         }
 
         [HttpGet]
-        public virtual async Task<ActionResult<IEnumerable<TModel>>> GetAll([FromQuery] string range = "", [FromQuery] string asc = "", [FromQuery] string desc = "")
+        public virtual async Task<ActionResult<IEnumerable<TModel>>> GetAll([FromQuery] string range = "", [FromQuery] string asc = "", [FromQuery] string desc = "" , [FromQuery] string fields = "")
         {
             IQueryable<TModel> query = _context.Set<TModel>().Where(m => !m.Deleted);
+
+            bool isPartial = false;
 
             // Apply filters based on query string (exclude range)
             var filter = Request.Query.GetQueryParams<TModel>();
@@ -44,6 +46,7 @@ namespace MyCellarApiCore.Controllers
             {
                 query = query.SortDesc(desc);
             }
+
 
             if (!string.IsNullOrEmpty(range))
             {
@@ -70,7 +73,7 @@ namespace MyCellarApiCore.Controllers
                 }
 
                 var totalItems = await query.CountAsync();
-                var items = await query.GetRange(start, count).ToListAsync();
+                query = query.GetRange(start, count);
 
                 Response.Headers["Content-Range"] = $"{start}-{end}/{totalItems}";
                 Response.Headers["Accept-Ranges"] = $"items {count}";
@@ -104,12 +107,29 @@ namespace MyCellarApiCore.Controllers
 
                 if (end < totalItems - 1)
                 {
-                    return StatusCode((int)HttpStatusCode.PartialContent, items);
+                    isPartial = true;
                 }
 
-                return items;
+                
             }
-            return await query.ToListAsync();
+
+            List<TModel> items = await query.ToListAsync();
+            if (!string.IsNullOrEmpty(fields))
+            {
+                List<dynamic> newItems = new List<dynamic>();
+                foreach (var item in items)
+                {
+                    newItems.Add(item.SelectFields(fields));
+                }
+
+                return StatusCode((int)HttpStatusCode.PartialContent, newItems);
+            }
+
+            if (isPartial)
+            {
+                return StatusCode((int)HttpStatusCode.PartialContent, items);
+            }
+            return items;
         }
 
 
