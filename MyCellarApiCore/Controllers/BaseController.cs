@@ -116,7 +116,7 @@ namespace MyCellarApiCore.Controllers
             var items = await query.ToListAsync();
             if (!string.IsNullOrEmpty(fields))
             {
-                var itemsClone = new List<TModel>(items);
+                var itemsClone = items.GetRange(0, items.Count);
                 items.Clear();
                 foreach (var item in itemsClone)
                 {
