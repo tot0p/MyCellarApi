@@ -37,6 +37,12 @@ namespace MyCellarApiCore.Controllers
 
 
             // sort the items by the specified field in ascending order
+            if (!string.IsNullOrEmpty(asc) && !string.IsNullOrEmpty(desc))
+            {
+                query = query.SortBoth(asc, desc);
+                asc = null;
+                desc = null;
+            }
             if (!string.IsNullOrEmpty(asc))
             {
                 query = query.SortAsc(asc);
