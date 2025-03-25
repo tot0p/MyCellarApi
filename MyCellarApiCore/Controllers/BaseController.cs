@@ -1,11 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyCellarApiCore.Data;
-using MyCellarApiCore.Models;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Net;
 using MyCellarApiCore.Extensions;
+using MyCellarApiCore.Models;
+using System.Net;
 
 namespace MyCellarApiCore.Controllers
 {
@@ -20,7 +18,7 @@ namespace MyCellarApiCore.Controllers
         }
 
         [HttpGet]
-        public virtual async Task<ActionResult<IEnumerable<TModel>>> GetAll([FromQuery] string range="", [FromQuery] string asc="", [FromQuery] string desc="")
+        public virtual async Task<ActionResult<IEnumerable<TModel>>> GetAll([FromQuery] string range = "", [FromQuery] string asc = "", [FromQuery] string desc = "")
         {
             IQueryable<TModel> query = _context.Set<TModel>().Where(m => !m.Deleted);
 
@@ -33,6 +31,18 @@ namespace MyCellarApiCore.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { message = $"Error applying filter: {ex.Message}" });
+            }
+
+
+            // sort the items by the specified field in ascending order
+            if (!string.IsNullOrEmpty(asc))
+            {
+                query = query.SortAsc(asc);
+            }
+            // sort the items by the specified field in descending order
+            if (!string.IsNullOrEmpty(desc))
+            {
+                query = query.SortDesc(desc);
             }
 
             if (!string.IsNullOrEmpty(range))
@@ -60,16 +70,16 @@ namespace MyCellarApiCore.Controllers
                 }
 
                 var totalItems = await query.CountAsync();
-                var items = await query.Skip(start).Take(count).ToListAsync();
+                var items = await query.GetRange(start, count).ToListAsync();
 
                 Response.Headers["Content-Range"] = $"{start}-{end}/{totalItems}";
                 Response.Headers["Accept-Ranges"] = $"items {count}";
 
                 var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
                 var links = new List<string>
-            {
-                $"<{baseUrl}?range=0-{count - 1}>; rel=\"first\""
-            };
+                {
+                    $"<{baseUrl}?range=0-{count - 1}>; rel=\"first\""
+                };
                 if (start > 0)
                 {
                     var prevStart = Math.Max(0, start - count);
@@ -94,25 +104,12 @@ namespace MyCellarApiCore.Controllers
 
                 if (end < totalItems - 1)
                 {
-                    Response.StatusCode = (int)HttpStatusCode.PartialContent;
+                    return StatusCode((int)HttpStatusCode.PartialContent, items);
                 }
 
                 return items;
             }
-            // sort the items by the specified field in ascending order
-            if (!string.IsNullOrEmpty(asc))
-            {
-                return await _context.Set<TModel>().Where(m => !m.Deleted).SortAsc(asc).ToListAsync();
-            }
-            // sort the items by the specified field in descending order
-            if (!string.IsNullOrEmpty(desc))
-            {
-                return await _context.Set<TModel>().Where(m => !m.Deleted).SortDesc(desc).ToListAsync();
-            }
-            else
-            {
-                return await query.ToListAsync();
-            }
+            return await query.ToListAsync();
         }
 
 
@@ -134,7 +131,7 @@ namespace MyCellarApiCore.Controllers
 
             if (!string.IsNullOrEmpty(fields))
             {
-                return StatusCode((int)HttpStatusCode.PartialContent ,  model.SelectFields(fields));
+                return StatusCode((int)HttpStatusCode.PartialContent, model.SelectFields(fields));
             }
             return model;
         }
@@ -208,7 +205,7 @@ namespace MyCellarApiCore.Controllers
         }
 
         [HttpGet("search")]
-        public virtual async Task<ActionResult<IEnumerable<TModel>>> Search([FromQuery] string asc="", [FromQuery] string desc="")
+        public virtual async Task<ActionResult<IEnumerable<TModel>>> Search([FromQuery] string asc = "", [FromQuery] string desc = "")
         {
             Dictionary<string, string> queryParams = Request.Query.GetQueryParams<TModel>();
             var tr = _context.Set<TModel>().Where(m => !m.Deleted).ApplySearch(queryParams);
