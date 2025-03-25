@@ -20,7 +20,7 @@ namespace MyCellarApiCore.Controllers
         }
 
         [HttpGet]
-        public virtual async Task<ActionResult<IEnumerable<TModel>>> GetAll([FromQuery] string range = "")
+        public virtual async Task<ActionResult<IEnumerable<TModel>>> GetAll([FromQuery] string range="", [FromQuery] string asc="", [FromQuery] string desc="")
         {
             IQueryable<TModel> query = _context.Set<TModel>().Where(m => !m.Deleted);
 
@@ -98,6 +98,16 @@ namespace MyCellarApiCore.Controllers
                 }
 
                 return items;
+            }
+            // sort the items by the specified field in ascending order
+            if (!string.IsNullOrEmpty(asc))
+            {
+                return await _context.Set<TModel>().Where(m => !m.Deleted).SortAsc(asc).ToListAsync();
+            }
+            // sort the items by the specified field in descending order
+            if (!string.IsNullOrEmpty(desc))
+            {
+                return await _context.Set<TModel>().Where(m => !m.Deleted).SortDesc(desc).ToListAsync();
             }
             else
             {
@@ -191,10 +201,22 @@ namespace MyCellarApiCore.Controllers
         }
 
         [HttpGet("search")]
-        public virtual async Task<ActionResult<IEnumerable<TModel>>> Search()
+        public virtual async Task<ActionResult<IEnumerable<TModel>>> Search([FromQuery] string asc="", [FromQuery] string desc="")
         {
             Dictionary<string, string> queryParams = Request.Query.GetQueryParams<TModel>();
             var tr = _context.Set<TModel>().Where(m => !m.Deleted).ApplySearch(queryParams);
+
+            // sort the items by the specified field in ascending order
+            if (!string.IsNullOrEmpty(asc))
+            {
+                tr = tr.SortAsc(asc);
+            }
+            // sort the items by the specified field in descending order
+            if (!string.IsNullOrEmpty(desc))
+            {
+                tr = tr.SortDesc(desc);
+            }
+
             return await tr.ToListAsync();
         }
     }
