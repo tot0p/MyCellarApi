@@ -94,7 +94,7 @@ namespace MyCellarApiCore.Controllers
 
                 if (end < totalItems - 1)
                 {
-                    Response.StatusCode = (int)HttpStatusCode.PartialContent;
+                    return StatusCode((int)HttpStatusCode.PartialContent, items);
                 }
 
                 return items;
