@@ -201,10 +201,22 @@ namespace MyCellarApiCore.Controllers
         }
 
         [HttpGet("search")]
-        public virtual async Task<ActionResult<IEnumerable<TModel>>> Search()
+        public virtual async Task<ActionResult<IEnumerable<TModel>>> Search([FromQuery] string asc="", [FromQuery] string desc="")
         {
             Dictionary<string, string> queryParams = Request.Query.GetQueryParams<TModel>();
             var tr = _context.Set<TModel>().Where(m => !m.Deleted).ApplySearch(queryParams);
+
+            // sort the items by the specified field in ascending order
+            if (!string.IsNullOrEmpty(asc))
+            {
+                tr = tr.SortAsc(asc);
+            }
+            // sort the items by the specified field in descending order
+            if (!string.IsNullOrEmpty(desc))
+            {
+                tr = tr.SortDesc(desc);
+            }
+
             return await tr.ToListAsync();
         }
     }

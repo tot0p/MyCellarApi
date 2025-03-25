@@ -7,6 +7,7 @@ namespace MyCellarApiCore.Extensions
 {
     public static class IQueryableExtensions
     {
+        #region Sort
         // Order by a field in ascending order
         public static IOrderedQueryable<TModel> SortAsc<TModel>(this IQueryable<TModel> query, string field)
         {
@@ -59,5 +60,7 @@ namespace MyCellarApiCore.Extensions
             var lambda = Expression.Lambda<Func<TModel, object>>(property, param);
             return lambda;
         }
+
+        #endregion
     }
 }
