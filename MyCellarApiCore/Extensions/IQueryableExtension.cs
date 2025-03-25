@@ -181,7 +181,7 @@ namespace MyCellarApiCore.Extensions
                 var elems = fields.Skip(1);
                 foreach (var elem in elems)
                 {
-                    queryOrdered.ThenByDescending(GenerateLambda<TModel>(elem));
+                    queryOrdered = queryOrdered.ThenByDescending(GenerateLambda<TModel>(elem));
                 }
                 return queryOrdered;
             }
@@ -190,6 +190,24 @@ namespace MyCellarApiCore.Extensions
             var lambda = GenerateLambda<TModel>(field);
 
             return query.OrderByDescending(lambda);
+        }
+
+        public static IOrderedQueryable<TModel> SortBoth<TModel>(this IQueryable<TModel> query, string asc, string desc)
+        {
+            var fieldsAsc = asc.Split(",");
+            var fieldsDesc = desc.Split(",");
+
+            var queryOrdered = query.OrderBy(GenerateLambda<TModel>(fieldsAsc[0]));
+            var elemsAsc = fieldsAsc.Skip(1);
+            foreach (var elem in elemsAsc)
+            {
+                queryOrdered = queryOrdered.ThenBy(GenerateLambda<TModel>(elem));
+            }
+            foreach (var elem in fieldsDesc)
+            {
+                queryOrdered.ThenByDescending(GenerateLambda<TModel>(elem));
+            }
+            return queryOrdered;
         }
 
         // Generate a lambda expression for a field
