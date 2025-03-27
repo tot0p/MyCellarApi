@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.IdentityModel.Tokens;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -102,7 +103,7 @@ namespace MyCellarApiCore.Extensions
 
         public static IQueryable<T> ApplySearch<T>(this IQueryable<T> query, Dictionary<string, string> search)
         {
-            if (search != null)
+            if (search.IsNullOrEmpty())
             {
                 var parameter = Expression.Parameter(typeof(T), "x");
                 Expression<Func<T, bool>> predicate = null;

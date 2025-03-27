@@ -4,6 +4,7 @@ using MyCellarApiCore.Data;
 using MyCellarApiCore.Extensions;
 using MyCellarApiCore.Models;
 using System.Net;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace MyCellarApiCore.Controllers
 {
@@ -235,16 +236,19 @@ namespace MyCellarApiCore.Controllers
             var tr = _context.Set<TModel>().Where(m => !m.Deleted).ApplySearch(queryParams);
 
             // sort the items by the specified field in ascending order
-            if (!string.IsNullOrEmpty(asc))
+            if (!string.IsNullOrEmpty(asc) && !string.IsNullOrEmpty(desc))
+            {
+                tr = tr.SortBoth(asc, desc);
+            }
+            else if (!string.IsNullOrEmpty(asc))
             {
                 tr = tr.SortAsc(asc);
             }
             // sort the items by the specified field in descending order
-            if (!string.IsNullOrEmpty(desc))
+            else if (!string.IsNullOrEmpty(desc))
             {
                 tr = tr.SortDesc(desc);
             }
-
             return await tr.ToListAsync();
         }
     }
