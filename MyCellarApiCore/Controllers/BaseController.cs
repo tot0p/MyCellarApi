@@ -1,11 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyCellarApiCore.Data;
-using MyCellarApiCore.Models;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Net;
 using MyCellarApiCore.Extensions;
+using MyCellarApiCore.Models;
+using System.Net;
 
 namespace MyCellarApiCore.Controllers
 {
@@ -20,9 +18,11 @@ namespace MyCellarApiCore.Controllers
         }
 
         [HttpGet]
-        public virtual async Task<ActionResult<IEnumerable<TModel>>> GetAll([FromQuery] string range="", [FromQuery] string asc="", [FromQuery] string desc="")
+        public virtual async Task<ActionResult<IEnumerable<TModel>>> GetAll([FromQuery] string range = "", [FromQuery] string asc = "", [FromQuery] string desc = "" , [FromQuery] string fields = "")
         {
             IQueryable<TModel> query = _context.Set<TModel>().Where(m => !m.Deleted);
+
+            bool isPartial = false;
 
             // Apply filters based on query string (exclude range)
             var filter = Request.Query.GetQueryParams<TModel>();
@@ -34,6 +34,23 @@ namespace MyCellarApiCore.Controllers
             {
                 return BadRequest(new { message = $"Error applying filter: {ex.Message}" });
             }
+
+
+            // sort the items by the specified field in ascending order
+            if (!string.IsNullOrEmpty(asc) && !string.IsNullOrEmpty(desc))
+            {
+                query = query.SortBoth(asc, desc);
+            }
+            else if (!string.IsNullOrEmpty(asc))
+            {
+                query = query.SortAsc(asc);
+            }
+            // sort the items by the specified field in descending order
+            else if (!string.IsNullOrEmpty(desc))
+            {
+                query = query.SortDesc(desc);
+            }
+
 
             if (!string.IsNullOrEmpty(range))
             {
@@ -60,16 +77,16 @@ namespace MyCellarApiCore.Controllers
                 }
 
                 var totalItems = await query.CountAsync();
-                var items = await query.Skip(start).Take(count).ToListAsync();
+                query = query.GetRange(start, count);
 
                 Response.Headers["Content-Range"] = $"{start}-{end}/{totalItems}";
                 Response.Headers["Accept-Ranges"] = $"items {count}";
 
                 var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
                 var links = new List<string>
-            {
-                $"<{baseUrl}?range=0-{count - 1}>; rel=\"first\""
-            };
+                {
+                    $"<{baseUrl}?range=0-{count - 1}>; rel=\"first\""
+                };
                 if (start > 0)
                 {
                     var prevStart = Math.Max(0, start - count);
@@ -94,32 +111,38 @@ namespace MyCellarApiCore.Controllers
 
                 if (end < totalItems - 1)
                 {
-                    Response.StatusCode = (int)HttpStatusCode.PartialContent;
+                    isPartial = true;
                 }
 
-                return items;
+                
             }
-            // sort the items by the specified field in ascending order
-            if (!string.IsNullOrEmpty(asc))
+
+            List<TModel> items = await query.ToListAsync();
+            if (!string.IsNullOrEmpty(fields))
             {
-                return await _context.Set<TModel>().Where(m => !m.Deleted).SortAsc(asc).ToListAsync();
+                List<dynamic> newItems = new List<dynamic>();
+                foreach (var item in items)
+                {
+                    newItems.Add(item.SelectFields(fields));
+                }
+
+                return StatusCode((int)HttpStatusCode.PartialContent, newItems);
             }
-            // sort the items by the specified field in descending order
-            if (!string.IsNullOrEmpty(desc))
+
+            if (isPartial)
             {
-                return await _context.Set<TModel>().Where(m => !m.Deleted).SortDesc(desc).ToListAsync();
+                return StatusCode((int)HttpStatusCode.PartialContent, items);
             }
-            else
-            {
-                return await query.ToListAsync();
-            }
+            return items;
         }
 
 
         [HttpGet("{id}")]
-        public virtual async Task<ActionResult<TModel>> GetModel(int id)
+        public virtual async Task<ActionResult<dynamic>> GetModel(int id, [FromQuery] string fields = "")
         {
             var model = await _context.Set<TModel>().FindAsync(id);
+
+
 
             if (model == null)
             {
@@ -128,6 +151,11 @@ namespace MyCellarApiCore.Controllers
             else if (model.Deleted)
             {
                 return NotFound();
+            }
+
+            if (!string.IsNullOrEmpty(fields))
+            {
+                return StatusCode((int)HttpStatusCode.PartialContent, model.SelectFields(fields));
             }
             return model;
         }
@@ -201,7 +229,7 @@ namespace MyCellarApiCore.Controllers
         }
 
         [HttpGet("search")]
-        public virtual async Task<ActionResult<IEnumerable<TModel>>> Search([FromQuery] string asc="", [FromQuery] string desc="")
+        public virtual async Task<ActionResult<IEnumerable<TModel>>> Search([FromQuery] string asc = "", [FromQuery] string desc = "")
         {
             Dictionary<string, string> queryParams = Request.Query.GetQueryParams<TModel>();
             var tr = _context.Set<TModel>().Where(m => !m.Deleted).ApplySearch(queryParams);

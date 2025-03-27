@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Dynamic;
 
 namespace MyCellarApiCore.Models
 {
@@ -16,5 +17,29 @@ namespace MyCellarApiCore.Models
 
         [Required]
         public bool Deleted { get; set; }
+
+
+        public virtual dynamic SelectFields(string fields)
+        {
+            var fieldsArray = fields.ToLower().Split(",");
+
+
+            IDictionary<string, object?> expando = new Dictionary<string, object?>();
+            var sourceType = this.GetType();
+
+            Console.WriteLine(sourceType);
+
+            foreach (var field in fieldsArray)
+            {
+                var propertyInfo = sourceType.GetProperty(field.First().ToString().ToUpper() + String.Join("", field.Skip(1)));
+                if (propertyInfo != null)
+                {
+                    expando.Add(field, propertyInfo.GetValue(obj: this));
+                }
+            }
+            
+
+            return expando;
+        }
     }
 }
