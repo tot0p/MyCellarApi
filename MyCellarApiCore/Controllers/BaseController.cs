@@ -234,7 +234,7 @@ namespace MyCellarApiCore.Controllers
         public virtual async Task<ActionResult<IEnumerable<TModel>>> Search([FromQuery] string asc = "", [FromQuery] string desc = "")
         {
             Dictionary<string, string> queryParams = Request.Query.GetQueryParams<TModel>();
-            if (queryParams.IsNullOrEmpty())
+            if (queryParams.Count == 0)
             {
                 return BadRequest(new { message = "No search parameters provided" });
             }
