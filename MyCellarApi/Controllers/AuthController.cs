@@ -16,7 +16,6 @@ namespace MyCellarApi.Controllers
         {
             var redirectUrl = Url.Action("LoginCallback", "Auth", null, Request.Scheme);
             var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
-            Console.WriteLine(properties.RedirectUri);
             return Challenge(properties, OpenIdConnectDefaults.AuthenticationScheme);
         }
 
