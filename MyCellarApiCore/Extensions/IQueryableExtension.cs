@@ -103,7 +103,7 @@ namespace MyCellarApiCore.Extensions
 
         public static IQueryable<T> ApplySearch<T>(this IQueryable<T> query, Dictionary<string, string> search)
         {
-            if (search.IsNullOrEmpty())
+            if (search != null)
             {
                 var parameter = Expression.Parameter(typeof(T), "x");
                 Expression<Func<T, bool>> predicate = null;

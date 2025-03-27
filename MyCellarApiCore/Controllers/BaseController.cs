@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MyCellarApiCore.Data;
 using MyCellarApiCore.Extensions;
 using MyCellarApiCore.Models;
@@ -233,6 +234,10 @@ namespace MyCellarApiCore.Controllers
         public virtual async Task<ActionResult<IEnumerable<TModel>>> Search([FromQuery] string asc = "", [FromQuery] string desc = "")
         {
             Dictionary<string, string> queryParams = Request.Query.GetQueryParams<TModel>();
+            if (queryParams.IsNullOrEmpty())
+            {
+                return BadRequest(new { message = "No search parameters provided" });
+            }
             var tr = _context.Set<TModel>().Where(m => !m.Deleted).ApplySearch(queryParams);
 
             // sort the items by the specified field in ascending order
