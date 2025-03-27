@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MyCellarApiCore.Data;
 using MyCellarApiCore.Extensions;
 using MyCellarApiCore.Models;
 using System.Net;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace MyCellarApiCore.Controllers
 {
@@ -232,19 +234,26 @@ namespace MyCellarApiCore.Controllers
         public virtual async Task<ActionResult<IEnumerable<TModel>>> Search([FromQuery] string asc = "", [FromQuery] string desc = "")
         {
             Dictionary<string, string> queryParams = Request.Query.GetQueryParams<TModel>();
+            if (queryParams.Count == 0)
+            {
+                return BadRequest(new { message = "No search parameters provided" });
+            }
             var tr = _context.Set<TModel>().Where(m => !m.Deleted).ApplySearch(queryParams);
 
             // sort the items by the specified field in ascending order
-            if (!string.IsNullOrEmpty(asc))
+            if (!string.IsNullOrEmpty(asc) && !string.IsNullOrEmpty(desc))
+            {
+                tr = tr.SortBoth(asc, desc);
+            }
+            else if (!string.IsNullOrEmpty(asc))
             {
                 tr = tr.SortAsc(asc);
             }
             // sort the items by the specified field in descending order
-            if (!string.IsNullOrEmpty(desc))
+            else if (!string.IsNullOrEmpty(desc))
             {
                 tr = tr.SortDesc(desc);
             }
-
             return await tr.ToListAsync();
         }
     }
